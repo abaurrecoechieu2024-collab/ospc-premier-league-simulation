@@ -1,7 +1,7 @@
 # Premier League Season Simulation
 ## Group 6 — Operating Systems and Parallel Computing
 
-**Status:** A first sequential baseline, frozen input CSVs, and correctness tests are available. Modelling choices are provisional; parallel implementations and cluster experiments remain to be completed.
+**Status:** Sequential baseline, final model (backtested) and tests are done; the baseline is characterized on the cluster as CPU-bound (job 29781). Parallel versions and scaling experiments are in progress.
 
 **Start here:** [Run and understand the baseline](docs/BASELINE_GUIDE.md).
 
@@ -63,7 +63,7 @@ Suggested preparation:
 | `docs/` | Decisions, task allocation, and AI-use record |
 
 ## Running the project
-See [the baseline guide](docs/BASELINE_GUIDE.md) for installation, a small run, tests, profiling, outputs, and a starter Slurm job. The baseline has been tested locally; cluster validation is pending.
+The baseline has been tested locally and on the cluster (see `results/characterize/`).
 
 The final README must document installation, data preparation, correctness checks, command-line runs with workload/worker parameters, cluster submission, and plot generation. Include a small configuration that completes in under five minutes and verify the full pipeline from a fresh clone on the cluster.
 
