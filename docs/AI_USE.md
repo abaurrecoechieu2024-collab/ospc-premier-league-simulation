@@ -15,3 +15,10 @@ Record future AI assistance, verification, and corrections as the project develo
 - Provisional assumptions are documented in BASELINE_GUIDE.md for human review.
 - No parallel implementation or cluster experiment was completed.
 - Review the code and results together and adapt this record to the syllabus format.
+
+## 14 November 2026 (2)
+- Tool: Claude (Anthropic), used by Theodor-Gabriel David.
+- Assistance: reviewed the baseline against the team plan; restructured it into data/fixtures/strengths/simulate/table modules with pandas; one goals array per batch and a seeded random tie-break; 20 × 20 position counts; season weights and Championship conversion for promoted teams; pytest tests; Slurm script using the course environment; docs/BEYOND_THE_COURSE.md.
+- Verification: 18 pytest tests passed locally; real-data run of 10,000 seasons checked (probabilities sum to 1 per position).
+- To do by the team: review the modelling choices, run the tests and a job on the cluster.
+- Later the same day (Claude): pooled promotion factors, backtest script (simple/multi/full models, every matchweek), season-date check for input files, and the final defaults (multi, weight 0.5, Championship off) chosen by the team from the backtest results run locally.
