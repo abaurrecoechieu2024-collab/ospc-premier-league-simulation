@@ -1,5 +1,16 @@
 # Experiments and measurements: Theodor-Gabriel David
 
+### 2026-11-14: Workload characterization on the cluster (job 29781)
+- **Question:** is the baseline limited by CPU, I/O or memory?
+- **Setup:** cluster job 29781, 2 CPUs (1 core), 1,000,000 seasons, `/usr/bin/time -v` + `sacct`.
+- **Command:** `sbatch slurm/characterize.sbatch`
+- **Result:** wall 61.7 s, user 61.5 s, system 0.07 s, 99% CPU, max RSS ≈ 118 MB,
+  0 major page faults, 0 file-system inputs, 3,203 voluntary context switches;
+  sacct CPU efficiency ≈ 0.50 (1 of 2 hardware threads used).
+- **Conclusion:** CPU-bound → parallelize with processes (GIL). 61 µs per season:
+  2,000,000 seasons ≈ 2 min for the first scaling plot, 12,000,000 ≈ 12 min for the full
+  baseline. Serial part (load + fit + startup) ≈ 0.5 s ≈ 0.8% of the run.
+
 See `members/README.md` for the rules and the entry template. Newest entry first.
 All runs on 14 November 2026 in the course container (laptop), not cluster timings.
 
