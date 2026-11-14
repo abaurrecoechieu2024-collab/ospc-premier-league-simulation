@@ -23,16 +23,17 @@ Record chosen files and their provenance in [data/README.md](data/README.md). Ke
 3. **NumPy vectorization:** calculate match outcomes in batches, controlling memory use. Vectorization does not automatically imply multicore execution.
 4. **Slurm job arrays:** the additional technique assigned by the instructor, replacing the proposal's Numba plan. Each task handles a block of seasons.
 
-## Decisions to agree before implementation
-- [ ] Historical training seasons and target season.
-- [ ] Full-season simulation or the teacher's suggested remaining-match simulation.
-- [ ] Snapshot date, current standings, and source or construction of remaining fixtures.
-- [ ] Method for estimating attack/defence strength and generating goals.
-- [ ] Treatment of promoted teams or teams with limited historical data.
-- [ ] Ranking and tie-break rules, including any documented simplifications.
-- [ ] Definition of European qualification and relegation places.
-- [ ] Batch size and reproducibility strategy.
-- [ ] Task owners and internal deadlines.
+## Decisions (agreed)
+- [x] Training: Premier League 2023/24–2025/26 + played 2026/27 games; a season k years back counts 0.5^k. Chosen with a weekly backtest on 2024/25 and 2025/26 (see docs/VALIDATION.md). The Championship conversion for promoted teams was tested and is off by default (`--championship`).
+- [x] Simulate only the remaining 2026/27 matches from a frozen snapshot (14 November 2026: 100 played, 280 left).
+- [x] Goals: Poisson with expected goals = league average × attack × opponent defence.
+- [x] Ranking: points → goal difference → goals scored → seeded random draw (documented simplification).
+- [x] Outcomes: title, top 4, top 6, relegation (bottom 3), all from 20 × 20 position counts.
+- [x] Fixed batches (default 1,000 seasons), one `SeedSequence.spawn` stream each; every batch draws all its goals first, then its tie-break numbers. All versions must give exactly the same counts.
+- [x] Additional technique: Slurm job arrays.
+- [ ] Task owners and internal deadlines (see the team plan).
+
+New ideas that were not covered in class are explained in [docs/BEYOND_THE_COURSE.md](docs/BEYOND_THE_COURSE.md).
 
 For reproducibility, the teacher recommends independent random streams per fixed batch using `SeedSequence.spawn`. Assign streams to batch IDs rather than worker identities so worker count and completion order do not change inputs. For NumPy, agree early whether to reuse identical generated goals or compare probabilities statistically with a justified tolerance.
 

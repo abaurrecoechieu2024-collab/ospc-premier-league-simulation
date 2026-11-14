@@ -1,164 +1,125 @@
-"""Sequential Monte Carlo baseline: one season, one match at a time."""
+"""Sequential baseline: run every batch one after another in one process.
+
+Example:
+    python -m src.baseline --as-of 2026-11-14 --seasons 1000 --output results/test-run
+"""
 import argparse
-import csv
-import hashlib
-import json
-import math
 import os
-import platform
 import socket
-import subprocess
-from datetime import date, datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from time import perf_counter
 
-import numpy as np
+import pandas as pd
 
-from .model import fit_rates, prepare_season, ranking, read_matches, season_year, update_table
-
-
-def batch_specs(seasons, batch_size, seed):
-    """Fixed logical batches: keep these identical in future parallel versions."""
-    if seasons < 1 or batch_size < 1 or seed < 0:
-        raise ValueError("Seasons/batch size must be positive and seed nonnegative")
-    parent = np.random.SeedSequence(seed)
-    for start in range(0, seasons, batch_size):
-        yield min(batch_size, seasons - start), parent.spawn(1)[0]
+from .data import load_all
+from .fixtures import current_matches, current_standings, remaining_fixtures, team_list
+from .simulate import batch_seeds, expected_goals, simulate_batch
+from .strengths import fit_strengths
+from .table import rank_teams
 
 
-def simulate_batch(size, child_seed, teams, initial, fixtures, rates, top_k, relegated):
-    """Pure Python loops; NumPy is used only for scalar random goal draws."""
-    rng = np.random.Generator(np.random.PCG64(child_seed))
-    counts = [[0, 0, 0] for _ in teams]  # titles, top-k finishes, relegations
-    for _ in range(size):
-        table = [row.copy() for row in initial]
-        for (home, away), (home_rate, away_rate) in zip(fixtures, rates):
-            hg = int(rng.poisson(home_rate))
-            ag = int(rng.poisson(away_rate))
-            update_table(table, home, away, hg, ag)
-        order = ranking(table, teams)
-        counts[order[0]][0] += 1
-        for team in order[:top_k]:
-            counts[team][1] += 1
-        if relegated:
-            for team in order[-relegated:]:
-                counts[team][2] += 1
-    return counts
+def prepare(data_dir, as_of, decay=0.5, prior_games=5.0, matches=None, championship=False):
+    """Serial part: load data, build the current table, fit strengths.
+
+    Returns the inputs every version needs and the two serial timings.
+    `matches` lets the backtest pass a table that stops at an earlier season.
+    """
+    start = perf_counter()
+    if matches is None:
+        matches = load_all(data_dir)
+    current = current_matches(matches, as_of)
+    teams = team_list(current)
+    table = current_standings(current, teams)
+    fixtures = remaining_fixtures(current, teams)
+    loading_seconds = perf_counter() - start
+
+    start = perf_counter()
+    model = fit_strengths(matches, teams, as_of, decay, prior_games, championship)
+    rates = expected_goals(model, teams, fixtures)
+    fitting_seconds = perf_counter() - start
+
+    inputs = {"teams": teams, "table": table, "fixtures": fixtures, "rates": rates}
+    return inputs, model, loading_seconds, fitting_seconds
 
 
-def simulate(teams, initial, fixtures, rates, seasons=1000, batch_size=100,
-             seed=2026, top_k=4, relegated=3):
-    if not 1 <= top_k <= len(teams) or not 0 <= relegated < len(teams):
-        raise ValueError("Invalid top-k or relegation count")
-    if len(fixtures) != len(rates) or len(initial) != len(teams):
-        raise ValueError("Fixture/rate or team/table lengths differ")
-    if any(not math.isfinite(x) or x < 0 for pair in rates for x in pair):
-        raise ValueError("Goal rates must be finite and nonnegative")
-    totals = [[0, 0, 0] for _ in teams]
-    for size, child_seed in batch_specs(seasons, batch_size, seed):
-        counts = simulate_batch(size, child_seed, teams, initial, fixtures, rates, top_k, relegated)
-        for total, count in zip(totals, counts):
-            for column in range(3):
-                total[column] += count[column]
-    return totals
+def add_counts(total, counts):
+    for t_row, c_row in zip(total, counts):
+        for position, value in enumerate(c_row):
+            t_row[position] += value
+
+
+def run_baseline(n_seasons, batch_size, seed, inputs):
+    """Total counts[team][final position] over all batches."""
+    n_teams = len(inputs["teams"])
+    total = [[0] * n_teams for _ in range(n_teams)]
+    for n, seed_seq in batch_seeds(n_seasons, batch_size, seed):
+        add_counts(total, simulate_batch(seed_seq, n, inputs))
+    return total
+
+
+def summarize(counts, teams, n_seasons):
+    """Title, top 4, top 6 and relegation probabilities from the position counts."""
+    rows = []
+    for team, c in zip(teams, counts):
+        rows.append({"team": team, "title": c[0] / n_seasons, "top4": sum(c[:4]) / n_seasons,
+                     "top6": sum(c[:6]) / n_seasons, "relegation": sum(c[-3:]) / n_seasons})
+    return pd.DataFrame(rows).sort_values(["title", "top4", "top6"], ascending=False)
+
+
+def write_results(output, version, workers, args, inputs, counts, timings):
+    """Results, current table, raw counts and one timing row (CSV) per run."""
+    output.mkdir(parents=True, exist_ok=False)
+    teams = inputs["teams"]
+    start = perf_counter()
+    summarize(counts, teams, args.seasons).to_csv(output / "probabilities.csv", index=False)
+    pd.DataFrame(counts, index=teams, columns=range(1, len(teams) + 1)).to_csv(output / "counts.csv")
+    table = [[teams[i], *inputs["table"][i]] for i in rank_teams(inputs["table"])]
+    pd.DataFrame(table, columns=["team", "points", "goals_for", "goals_against"]).to_csv(
+        output / "current_table.csv", index=False)
+    timings["writing_seconds"] = perf_counter() - start
+    row = {"version": version, "workers": workers, "seasons": args.seasons,
+           "batch_size": args.batch_size, "seed": args.seed, "repetition": args.repetition,
+           **timings, "node": socket.gethostname(),
+           "slurm_job_id": os.environ.get("SLURM_JOB_ID", "local"),
+           "date": datetime.now().isoformat(timespec="seconds"), "as_of": args.as_of,
+           "decay": args.decay, "championship": args.championship}
+    pd.DataFrame([row]).to_csv(output / "timing.csv", index=False)
+
+
+def parse_args(argv=None, workers=False):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--data-dir", default="data/raw")
+    parser.add_argument("--as-of", required=True, help="snapshot date, e.g. 2026-11-14")
+    parser.add_argument("--seasons", type=int, required=True)
+    parser.add_argument("--batch-size", type=int, default=1000)
+    parser.add_argument("--seed", type=int, default=2026)
+    parser.add_argument("--repetition", type=int, default=1)
+    parser.add_argument("--output", type=Path, required=True, help="a new folder for this run")
+    parser.add_argument("--championship", action="store_true",
+                        help="also use Championship games for promoted teams (off by default)")
+    parser.add_argument("--decay", type=float, default=0.5,
+                        help="weight per season back in time (this season = 1)")
+    if workers:
+        parser.add_argument("--workers", type=int, required=True)
+    return parser.parse_args(argv)
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--history", type=Path, nargs="+", required=True)
-    parser.add_argument("--current", type=Path, required=True)
-    parser.add_argument("--as-of", type=date.fromisoformat, required=True)
-    parser.add_argument("--seasons", type=int, default=1000)
-    parser.add_argument("--batch-size", type=int, default=100)
-    parser.add_argument("--seed", type=int, default=2026)
-    parser.add_argument("--workers", type=int, choices=[1], default=1)
-    parser.add_argument("--top-k", type=int, default=4)
-    parser.add_argument("--relegated", type=int, default=3)
-    parser.add_argument("--expected-teams", type=int, default=20)
-    parser.add_argument("--prior-games", type=float, default=5.0)
-    parser.add_argument("--repetition", type=int, default=1)
-    parser.add_argument("--output", type=Path, required=True, help="New directory; existing outputs are not overwritten")
-    args = parser.parse_args(argv)
-    if (args.seasons < 1 or args.batch_size < 1 or args.seed < 0 or args.repetition < 1
-            or not math.isfinite(args.prior_games) or args.prior_games <= 0):
-        parser.error("Invalid seasons, batch size, seed, repetition, or prior")
-    if args.output.exists():
-        parser.error("Output directory already exists; choose a new run directory")
+    args = parse_args(argv)
+    inputs, model, loading, fitting = prepare(args.data_dir, pd.Timestamp(args.as_of), args.decay,
+                                               championship=args.championship)
 
-    started = perf_counter()
-    try:
-        current = read_matches(args.current)
-        history = [m for path in args.history for m in read_matches(path)]
-        keys = [(season_year(m.date), m.home, m.away) for m in history]
-        if len(keys) != len(set(keys)):
-            raise ValueError("Overlapping or duplicate history files")
-        teams, played, initial, fixtures = prepare_season(current, args.as_of, args.expected_teams)
-        if any(season_year(m.date) >= season_year(current[0].date) for m in history):
-            raise ValueError("History must contain only seasons before the target season")
-        if not 1 <= args.top_k <= len(teams) or not 0 <= args.relegated < len(teams):
-            raise ValueError("Invalid top-k or relegation count")
-    except ValueError as error:
-        parser.error(str(error))
-    input_hashes = {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in [*args.history, args.current]}
-    loading_seconds = perf_counter() - started
-
+    load_before = os.getloadavg()[0]          # the "load average" htop shows
     start = perf_counter()
-    rates = fit_rates(history + played, teams, fixtures, args.prior_games)
-    fitting_seconds = perf_counter() - start
-    load_before = os.getloadavg()
-    start = perf_counter()
-    totals = simulate(teams, initial, fixtures, rates, args.seasons, args.batch_size,
-                      args.seed, args.top_k, args.relegated)
-    simulation_seconds = perf_counter() - start
-    load_after = os.getloadavg()
-    assert [sum(row[i] for row in totals) for i in range(3)] == [
-        args.seasons, args.top_k * args.seasons, args.relegated * args.seasons]
+    counts = run_baseline(args.seasons, args.batch_size, args.seed, inputs)
+    simulation = perf_counter() - start
 
-    metadata = {
-        "version": "sequential", "workers": 1, "problem_size": args.seasons,
-        "repetition": args.repetition, "elapsed_seconds": simulation_seconds,
-        "fitting_seconds": fitting_seconds, "loading_seconds": loading_seconds,
-        "compute_seconds": fitting_seconds + simulation_seconds,
-        "node": socket.gethostname(), "slurm_job_id": os.environ.get("SLURM_JOB_ID", ""),
-        "date": datetime.now(timezone.utc).isoformat(),
-        "node_load_1m_before": load_before[0], "node_load_1m_after": load_after[0],
-        "seed": args.seed, "batch_size": args.batch_size, "numpy_version": np.__version__,
-        "python_version": platform.python_version(), "as_of": str(args.as_of),
-        "completed_matches": len(played), "remaining_matches": len(fixtures),
-        "training_matches": len(history) + len(played), "top_k": args.top_k,
-        "relegated": args.relegated, "prior_games": args.prior_games,
-        "ranking_rule": "points, goal difference, goals for, alphabetical fallback",
-        "input_sha256": input_hashes,
-        "local_smoke_test_only": "SLURM_JOB_ID" not in os.environ,
-    }
-    try:
-        metadata["git_revision"] = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, text=True).strip()
-    except (OSError, subprocess.CalledProcessError):
-        metadata["git_revision"] = "unavailable"
-    args.output.mkdir(parents=True, exist_ok=False)
-    write_start = perf_counter()
-    with (args.output / "probabilities.csv").open("w", newline="") as stream:
-        writer = csv.writer(stream)
-        writer.writerow(["team", "titles", "top_k_finishes", "relegations",
-                         "title_probability", "top_k_probability", "relegation_probability"])
-        for team, counts in zip(teams, totals):
-            writer.writerow([team, *counts, *(count / args.seasons for count in counts)])
-    with (args.output / "current_table.csv").open("w", newline="") as stream:
-        writer = csv.writer(stream)
-        writer.writerow(["rank", "team", "points", "goals_for", "goals_against"])
-        for rank, i in enumerate(ranking(initial, teams), 1):
-            writer.writerow([rank, teams[i], *initial[i]])
-    metadata["result_writing_seconds"] = perf_counter() - write_start
-    (args.output / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
-    flat = {k: v for k, v in metadata.items() if not isinstance(v, dict)}
-    with (args.output / "timing.csv").open("w", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=list(flat))
-        writer.writeheader(); writer.writerow(flat)
-    print(f"{len(teams)} teams; {len(played)} completed / {len(fixtures)} remaining matches")
-    print(f"{args.seasons:,} simulated seasons in {simulation_seconds:.3f}s; fitting {fitting_seconds:.4f}s")
-    print(f"Results: {args.output}")
-    print("Top-k is a finishing-position proxy, not official European qualification.")
+    timings = {"loading_seconds": loading, "fitting_seconds": fitting,
+               "simulation_seconds": simulation, "node_load": load_before}
+    write_results(args.output, "baseline", 1, args, inputs, counts, timings)
+    print(f"{len(inputs['fixtures'])} matches left; {args.seasons:,} seasons in {simulation:.2f} s "
+          f"(loading {loading:.3f} s, fitting {fitting:.3f} s) -> {args.output}")
 
 
 if __name__ == "__main__":

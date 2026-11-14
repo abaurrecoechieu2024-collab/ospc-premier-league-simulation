@@ -1,5 +1,21 @@
 [
   {
+    "path": "data/raw/E0_2324.csv",
+    "source_url": "https://football-data.co.uk/mmz4281/2324/E0.csv",
+    "retrieved_on": "2026-11-14",
+    "rows": 380,
+    "sha256": "b2e057b0ed959f198b0f63d2391c01239f3608e6de5db68edab3f88e04d07ff3",
+    "original_unmodified": true
+  },
+  {
+    "path": "data/raw/E0_2425.csv",
+    "source_url": "https://football-data.co.uk/mmz4281/2425/E0.csv",
+    "retrieved_on": "2026-11-14",
+    "rows": 380,
+    "sha256": "d0c8ce4a96d886cf60cf101f570f4a3893844226f91c7bd769eb568c49edbfa4",
+    "original_unmodified": true
+  },
+  {
     "path": "data/raw/E0_2526.csv",
     "source_url": "https://football-data.co.uk/mmz4281/2526/E0.csv",
     "retrieved_on": "2026-11-14",
@@ -13,6 +29,38 @@
     "retrieved_on": "2026-11-14",
     "rows": 100,
     "sha256": "d598a5f681e1a9a4acf9dad9fb203b68da6f67e2d195678dbe99e95fbba14593",
+    "original_unmodified": true
+  },
+  {
+    "path": "data/raw/E1_2223.csv",
+    "source_url": "https://football-data.co.uk/mmz4281/2223/E1.csv",
+    "retrieved_on": "2026-11-14",
+    "rows": 552,
+    "sha256": "cd38ab0586ea8cb4d573c363ff70749117f116da5b2741e5b0ea37da05860b1b",
+    "original_unmodified": true
+  },
+  {
+    "path": "data/raw/E1_2324.csv",
+    "source_url": "https://football-data.co.uk/mmz4281/2324/E1.csv",
+    "retrieved_on": "2026-11-14",
+    "rows": 552,
+    "sha256": "5737f6cc95c95092b28317f41d3123e2fb09345434efc1c84bbdf15830849ab3",
+    "original_unmodified": true
+  },
+  {
+    "path": "data/raw/E1_2425.csv",
+    "source_url": "https://football-data.co.uk/mmz4281/2425/E1.csv",
+    "retrieved_on": "2026-11-14",
+    "rows": 552,
+    "sha256": "f34c340446c916374be66bdc2fb25b87ee7f2662712ca009653d03ac705535f9",
+    "original_unmodified": true
+  },
+  {
+    "path": "data/raw/E1_2526.csv",
+    "source_url": "https://football-data.co.uk/mmz4281/2526/E1.csv",
+    "retrieved_on": "2026-11-14",
+    "rows": 552,
+    "sha256": "98954c319950f19158624b17a154ef1c56eb7b8d169ef317f28f06d11d0b9a74",
     "original_unmodified": true
   }
 ]
