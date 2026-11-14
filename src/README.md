@@ -1,3 +1,3 @@
 # Simulation code
 
-Add shared Python modules and command-line implementations here. Start with a clear sequential baseline. Separate data loading, strength estimation, goal generation, standings, and aggregation so implementations can reuse the same logic. No implementation exists yet.
+`model.py` reads and validates data, prepares the starting table, estimates goal rates, and ranks teams. `baseline.py` runs one season/match at a time and saves probabilities and timings. See [the guide](../docs/BASELINE_GUIDE.md).
