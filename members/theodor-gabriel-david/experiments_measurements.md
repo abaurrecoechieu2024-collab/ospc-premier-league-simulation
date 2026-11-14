@@ -1,4 +1,5 @@
 # Experiments and measurements: Theodor-Gabriel David
+See `members/README.md` for the rules and the entry template. Newest entry first.
 
 ### 2026-11-14: Workload characterization on the cluster (job 29781)
 - **Question:** is the baseline limited by CPU, I/O or memory?
@@ -10,9 +11,8 @@
 - **Conclusion:** CPU-bound → parallelize with processes (GIL). 61 µs per season:
   2,000,000 seasons ≈ 2 min for the first scaling plot, 12,000,000 ≈ 12 min for the full
   baseline. Serial part (load + fit + startup) ≈ 0.5 s ≈ 0.8% of the run.
-
-See `members/README.md` for the rules and the entry template. Newest entry first.
-All runs on 14 November 2026 in the course container (laptop), not cluster timings.
+  
+The entries below ran in the course container (laptop), not on the cluster.
 
 ### 2026-11-14: Final forecast with the chosen model (multi, weight 0.5)
 - **Setup:** snapshot 14 Nov 2026 (100 played, 280 left), 10,000 seasons.
