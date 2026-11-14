@@ -1,7 +1,9 @@
 # Premier League Season Simulation
 ## Group 6 — Operating Systems and Parallel Computing
 
-**Status:** Project approved; repository setup only. No simulator, datasets, experiments, or performance results have been added yet.
+**Status:** A first sequential baseline, frozen input CSVs, and correctness tests are available. Modelling choices are provisional; parallel implementations and cluster experiments remain to be completed.
+
+**Start here:** [Run and understand the baseline](docs/BASELINE_GUIDE.md).
 
 ## Our question
 What is each Premier League team's probability of winning the league, qualifying for European competitions, or being relegated?
@@ -60,7 +62,7 @@ Suggested preparation:
 | `docs/` | Decisions, task allocation, and AI-use record |
 
 ## Running the project
-There is no runnable implementation yet. Add dependencies and exact commands as implementation progresses.
+See [the baseline guide](docs/BASELINE_GUIDE.md) for installation, a small run, tests, profiling, outputs, and a starter Slurm job. The baseline has been tested locally; cluster validation is pending.
 
 The final README must document installation, data preparation, correctness checks, command-line runs with workload/worker parameters, cluster submission, and plot generation. Include a small configuration that completes in under five minutes and verify the full pipeline from a fresh clone on the cluster.
 
