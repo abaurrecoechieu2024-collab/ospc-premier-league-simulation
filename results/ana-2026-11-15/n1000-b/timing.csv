@@ -1,2 +1,0 @@
-version,workers,seasons,batch_size,seed,repetition,loading_seconds,fitting_seconds,simulation_seconds,node_load,writing_seconds,node,slurm_job_id,date,as_of,decay,championship
-baseline,1,1000,1000,2026,1,0.016449375078082085,0.002140958094969392,0.04507887503132224,1.775390625,0.0011317920871078968,Anas-MacBook-Air.local,local,2026-11-15T16:20:55,2026-11-14,0.5,False
