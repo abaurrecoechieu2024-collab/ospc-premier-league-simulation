@@ -1,0 +1,24 @@
+Sun Nov 15 19:14:41 2026    /tmp/tmp.2b09MyB6qT
+
+         65515712 function calls (65502091 primitive calls) in 20.525 seconds
+
+   Ordered by: cumulative time
+   List reduced from 3380 to 14 due to restriction <'run_baseline|simulate_batch|update_table|generate_batch|rank_teams|prepare|write_results|baseline.py'>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000   20.525   20.525 /home/pc56/ospc-premier-league-simulation/src/baseline.py:1(<module>)
+        1    0.000    0.000   20.085   20.085 /home/pc56/ospc-premier-league-simulation/src/baseline.py:108(main)
+        1    0.001    0.001   19.925   19.925 /home/pc56/ospc-premier-league-simulation/src/baseline.py:52(run_baseline)
+      200    6.972    0.035   19.921    0.100 /home/pc56/ospc-premier-league-simulation/src/simulate.py:41(simulate_batch)
+ 56000100    7.781    0.000    7.781    0.000 /home/pc56/ospc-premier-league-simulation/src/table.py:7(update_table)
+      200    3.031    0.015    3.047    0.015 /home/pc56/ospc-premier-league-simulation/src/simulate.py:33(generate_batch)
+   200001    0.069    0.000    1.030    0.000 /home/pc56/ospc-premier-league-simulation/src/table.py:22(rank_teams)
+        1    0.000    0.000    0.088    0.088 /home/pc56/ospc-premier-league-simulation/src/baseline.py:22(prepare)
+        1    0.000    0.000    0.071    0.071 /home/pc56/ospc-premier-league-simulation/src/baseline.py:70(write_results)
+      200    0.003    0.000    0.003    0.000 /home/pc56/ospc-premier-league-simulation/src/baseline.py:46(add_counts)
+        1    0.000    0.000    0.003    0.003 /home/pc56/ospc-premier-league-simulation/src/baseline.py:61(summarize)
+        1    0.000    0.000    0.001    0.001 /home/pc56/ospc-premier-league-simulation/src/baseline.py:90(parse_args)
+       17    0.000    0.000    0.000    0.000 /data/software/envs/ospc/lib/python3.12/enum.py:513(__prepare__)
+        4    0.000    0.000    0.000    0.000 /data/software/envs/ospc/lib/python3.12/site-packages/pandas/core/ops/array_ops.py:517(maybe_prepare_scalar_for_op)
+
+

@@ -1,0 +1,2 @@
+version,workers,seasons,batch_size,seed,repetition,loading_seconds,fitting_seconds,simulation_seconds,node_load,writing_seconds,node,slurm_job_id,date,as_of,decay,championship
+baseline,1,200000,1000,2026,1,0.07701249187812209,0.010913125704973936,19.925291273742914,58.72314453125,0.008249321952462196,haskell,30261,2026-11-15T19:14:41,2026-11-14,0.5,False
