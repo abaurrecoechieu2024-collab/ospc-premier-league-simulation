@@ -1,0 +1,9 @@
+comparison,metric,max_change_percentage_points,team_at_max_change
+n1000-a vs n10000,title,1.6100000000000003,Man City
+n1000-a vs n10000,top4,1.4800000000000009,Brentford
+n1000-a vs n10000,top6,2.539999999999998,Brentford
+n1000-a vs n10000,relegation,1.2900000000000023,Coventry
+n10000 vs n50000,title,0.7319999999999993,Man City
+n10000 vs n50000,top4,0.5319999999999991,Liverpool
+n10000 vs n50000,top6,0.7739999999999969,Chelsea
+n10000 vs n50000,relegation,0.9099999999999997,Crystal Palace
