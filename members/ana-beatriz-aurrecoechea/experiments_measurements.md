@@ -1,7 +1,5 @@
 # Experiments and measurements: Ana Beatriz Aurrecoechea
 
-See `members/README.md` for the rules and the entry template. Newest entry first.
-
 ### 15 nov 2026 #1: Running the same simulation twice
 
 **What I tested:** Would the program give the same results if I ran it twice with the same settings?
