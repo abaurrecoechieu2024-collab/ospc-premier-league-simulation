@@ -8,3 +8,11 @@ See `members/README.md` for the rules and the entry template. Newest entry first
 - **Command:** `python -m pytest -q`
 - **Result:** 30 passed, including exact count equality for 1, 2, and 4 workers. One unrelated deprecation warning came from the installed `anyio` pytest plugin.
 - **Conclusion:** Local correctness checks passed. Cluster validation and performance measurements are still pending.
+
+### 2026-11-15: Process-pool correctness validation on HPC cluster
+
+- **Question:** Does the process-pool implementation pass the project test suite on the university cluster?
+- **Setup:** University HPC cluster (julia), OSPC Python 3.12, branch `person-a-process-pool`.
+- **Command:** `/data/software/envs/ospc/bin/python -m pytest -q`
+- **Result:** 30 tests passed in 0.50 seconds, including exact baseline-count equality with 1, 2, and 4 workers. Seven DeprecationWarnings related to fork() in a multithreaded process.
+- **Conclusion:** Cluster correctness tests passed. Performance and scaling experiments remain pending.
