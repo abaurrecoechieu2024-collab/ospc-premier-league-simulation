@@ -1,0 +1,2 @@
+task_id,n_tasks,batches,seasons,loading_seconds,fitting_seconds,simulation_seconds,node,node_load,slurm_job_id,array_job_id,date
+3,4,25,25000,0.056627605110406876,0.00752767501398921,1.6842268067412078,haskell,49.03857421875,30256,30256,2026-11-15T19:04:22

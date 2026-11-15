@@ -1,0 +1,22 @@
+Timer unit: 1e-09 s
+
+Total time: 8.8456 s
+File: /home/pc56/ospc-premier-league-simulation/src/simulate.py
+Function: simulate_batch at line 41
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    41                                           def simulate_batch(seed_seq, n, inputs):
+    42                                               """Play n seasons with Python loops; return counts[team][final position]."""
+    43        20      18978.0    948.9      0.0      table0, fixtures, rates = inputs["table"], inputs["fixtures"], inputs["rates"]
+    44        20       8160.0    408.0      0.0      n_teams = len(table0)
+    45        20  314323738.0 1.57e+07      3.6      goals, tiebreak = generate_batch(seed_seq, n, rates, n_teams)
+    46        20      67852.0   3392.6      0.0      counts = [[0] * n_teams for _ in range(n_teams)]
+    47     20020    2786620.0    139.2      0.0      for season in range(n):
+    48     20000   17592803.0    879.6      0.2          table = [row.copy() for row in table0]
+    49   5620000 1108319370.0    197.2     12.5          for (home, away), (hg, ag) in zip(fixtures, goals[season].tolist()):
+    50   5600000 7033085523.0   1255.9     79.5              update_table(table, home, away, hg, ag)
+    51    420000  305097233.0    726.4      3.4          for position, team in enumerate(rank_teams(table, tiebreak[season].tolist())):
+    52    400000   64287489.0    160.7      0.7              counts[team][position] += 1
+    53        20      15220.0    761.0      0.0      return counts
+
