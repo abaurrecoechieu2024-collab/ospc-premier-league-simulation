@@ -87,8 +87,8 @@ def write_results(output, version, workers, args, inputs, counts, timings):
     pd.DataFrame([row]).to_csv(output / "timing.csv", index=False)
 
 
-def parse_args(argv=None, workers=False):
-    parser = argparse.ArgumentParser(description=__doc__)
+def parse_args(argv=None, workers=False, description=None):
+    parser = argparse.ArgumentParser(description=description or __doc__)
     parser.add_argument("--data-dir", default="data/raw")
     parser.add_argument("--as-of", required=True, help="snapshot date, e.g. 2026-11-14")
     parser.add_argument("--seasons", type=int, required=True)
