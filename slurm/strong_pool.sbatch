@@ -75,8 +75,8 @@ record = {
     "repetition": r["repetition"],
     "time": wall,                  # whole command's wall time, including setup and output
     "elapsed_seconds": wall,
-    "prepare_seconds": f"${prepare:.6f}",
-    "compute_seconds": f"${compute:.6f}",  # pool startup + simulation
+    "prepare_seconds": f"{prepare:.6f}",
+    "compute_seconds": f"{compute:.6f}",  # pool startup + simulation
     "pool_startup_seconds": r["pool_startup_seconds"],
     "simulation_seconds": r["simulation_seconds"],
     "loading_seconds": r["loading_seconds"],
