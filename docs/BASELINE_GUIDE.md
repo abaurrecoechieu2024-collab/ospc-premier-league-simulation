@@ -8,7 +8,7 @@
 | 1. Fit strengths (serial) | `src/strengths.py` | `fit_strengths()`, `promotion_factors()` | `fitting_seconds` |
 | 1. Expected goals (serial) | `src/simulate.py` | `expected_goals()` | `fitting_seconds` |
 | 2. Simulate (parallel part) | `src/simulate.py` | `batch_seeds()`, `generate_batch()`, `simulate_batch()` | `simulation_seconds` |
-| Process-pool startup | `src/pool.py` | executor warm-up before batch submission | `pool_startup_seconds` |
+| Process-pool startup | `src/pool.py` | process creation, worker initialization, warm-up, and readiness synchronization | `pool_startup_seconds` |
 | 2. Table rules | `src/table.py` | `update_table()`, `rank_teams()` | inside simulation |
 | 3. Combine and write (serial) | `src/baseline.py` | `run_baseline()`, `summarize()`, `write_results()` | `writing_seconds` |
 
@@ -33,7 +33,11 @@ Use a **new output folder** for every run. Each run writes:
 
 For process-pool runs, `timing.csv` also records `pool_startup_seconds`, separately
 from the batch `simulation_seconds`. Set the worker count explicitly with `--workers`;
-it is never inferred from the machine's CPU count.
+it is never inferred from the machine's CPU count. In a Slurm job, the requested
+worker count must not exceed `SLURM_CPUS_PER_TASK`; outside Slurm, local execution
+uses the explicitly requested count. Each worker receives the simulation inputs
+once at initialization, and each submitted task contains only its batch size and
+seed stream.
 
 ## Batch job on the cluster
 ```bash
