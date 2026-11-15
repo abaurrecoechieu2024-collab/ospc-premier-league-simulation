@@ -8,6 +8,7 @@
 | 1. Fit strengths (serial) | `src/strengths.py` | `fit_strengths()`, `promotion_factors()` | `fitting_seconds` |
 | 1. Expected goals (serial) | `src/simulate.py` | `expected_goals()` | `fitting_seconds` |
 | 2. Simulate (parallel part) | `src/simulate.py` | `batch_seeds()`, `generate_batch()`, `simulate_batch()` | `simulation_seconds` |
+| Process-pool startup | `src/pool.py` | executor warm-up before batch submission | `pool_startup_seconds` |
 | 2. Table rules | `src/table.py` | `update_table()`, `rank_teams()` | inside simulation |
 | 3. Combine and write (serial) | `src/baseline.py` | `run_baseline()`, `summarize()`, `write_results()` | `writing_seconds` |
 
@@ -21,6 +22,7 @@ From the repository root, with the course Python (on the cluster:
 ```bash
 pytest -q
 python -m src.baseline --as-of 2026-11-14 --seasons 1000 --output results/my-first-run
+python -m src.pool --as-of 2026-11-14 --seasons 1000 --workers 4 --output results/my-pool-run
 ```
 
 Use a **new output folder** for every run. Each run writes:
@@ -28,6 +30,10 @@ Use a **new output folder** for every run. Each run writes:
 - `counts.csv`: how often each team finished in each position (20 × 20, integers).
 - `current_table.csv`: the table at the snapshot date.
 - `timing.csv`: one row with the timings, node, Slurm job ID, date and node load.
+
+For process-pool runs, `timing.csv` also records `pool_startup_seconds`, separately
+from the batch `simulation_seconds`. Set the worker count explicitly with `--workers`;
+it is never inferred from the machine's CPU count.
 
 ## Batch job on the cluster
 ```bash
