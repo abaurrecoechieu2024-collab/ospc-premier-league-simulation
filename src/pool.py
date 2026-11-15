@@ -16,11 +16,13 @@ from .baseline import add_counts, parse_args, prepare, write_results
 from .simulate import batch_seeds, simulate_batch
 
 
+_pool_inputs = None
 _pool_start_event = None
 
 
-def _initialize_pool_worker(ready_queue, start_event):
-    global _pool_start_event
+def _initialize_pool_worker(inputs, ready_queue, start_event):
+    global _pool_inputs, _pool_start_event
+    _pool_inputs = inputs
     _pool_start_event = start_event
     ready_queue.put(os.getpid())
 
@@ -29,10 +31,37 @@ def _pool_warmup():
     _pool_start_event.wait()
 
 
+def _simulate_initialized_batch(n, seed_seq):
+    return simulate_batch(seed_seq, n, _pool_inputs)
+
+
+def _validate_workers(workers):
+    if workers < 1:
+        raise ValueError("--workers must be a positive integer")
+
+    allocation = os.environ.get("SLURM_CPUS_PER_TASK")
+    if allocation is None:
+        return
+    try:
+        allocated_workers = int(allocation)
+    except ValueError as error:
+        raise ValueError(
+            f"SLURM_CPUS_PER_TASK must be a positive integer; got {allocation!r}"
+        ) from error
+    if allocated_workers < 1:
+        raise ValueError(
+            f"SLURM_CPUS_PER_TASK must be a positive integer; got {allocation!r}"
+        )
+    if workers > allocated_workers:
+        raise ValueError(
+            f"--workers ({workers}) exceeds the Slurm allocation "
+            f"SLURM_CPUS_PER_TASK ({allocated_workers})"
+        )
+
+
 def run_pool(n_seasons, batch_size, seed, inputs, workers):
     """Return counts and separate pool-startup and batch-simulation timings."""
-    if workers < 1:
-        raise ValueError("workers must be a positive integer")
+    _validate_workers(workers)
 
     n_teams = len(inputs["teams"])
     total = [[0] * n_teams for _ in range(n_teams)]
@@ -47,7 +76,7 @@ def run_pool(n_seasons, batch_size, seed, inputs, workers):
             max_workers=workers,
             mp_context=context,
             initializer=_initialize_pool_worker,
-            initargs=(ready_queue, start_event),
+            initargs=(inputs, ready_queue, start_event),
         ) as executor:
             warmup_futures = [executor.submit(_pool_warmup) for _ in range(workers)]
             try:
@@ -63,7 +92,7 @@ def run_pool(n_seasons, batch_size, seed, inputs, workers):
 
             start = perf_counter()
             futures = [
-                executor.submit(simulate_batch, seed_seq, n, inputs)
+                executor.submit(_simulate_initialized_batch, n, seed_seq)
                 for n, seed_seq in batches
             ]
             for future in as_completed(futures):
@@ -78,8 +107,7 @@ def run_pool(n_seasons, batch_size, seed, inputs, workers):
 
 def main(argv=None):
     args = parse_args(argv, workers=True, description=__doc__)
-    if args.workers < 1:
-        raise ValueError("--workers must be a positive integer")
+    _validate_workers(args.workers)
 
     inputs, model, loading, fitting = prepare(
         args.data_dir,
