@@ -1,7 +1,7 @@
 # Premier League Season Simulation
 ## Group 6 — Operating Systems and Parallel Computing
 
-**Status:** Sequential baseline, final model (backtested) and tests are done; the baseline is characterized on the cluster as CPU-bound (job 29781). Parallel versions and scaling experiments are in progress.
+**Status:** Sequential baseline, final model (backtested), process pool and job arrays are done; all versions give identical counts (36 tests). Cluster results: baseline is CPU-bound (job 29781); the process pool reaches a 24.4× speedup on 32 workers (job 30371, plot in `results/plots/strong_scaling.png`). Next: vectorized version, full-size job arrays, weak scaling.
 
 **Start here:** [Run and understand the baseline](docs/BASELINE_GUIDE.md).
 
