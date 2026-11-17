@@ -7,7 +7,7 @@ See `members/README.md` for the rules and the entry template. Newest entry first
 - **Setup:** 100,000 Premier League seasons, snapshot 2026-11-14, batch size 1,000, seed 2026. Preliminary interactive test on haskell, with a Slurm allocation limited to 2 CPUs.
 - **Command:** `OMP_NUM_THREADS=1 python -m src.pool --as-of 2026-11-14 --seasons 100000 --batch-size 1000 --seed 2026 --workers "$w" --output "results/scaling-pool-${w}w"` (tested with w = 1, 2, 4).
 - **Result:** The 1-worker run took 7.42 seconds and the 2-worker run took 5.09 seconds. Preliminary speedup was 1.46x, with 72.9% efficiency. The 4-worker attempt failed because SLURM_CPUS_PER_TASK was 2. Raw timings are saved in `results/scaling-pool-1w/timing.csv` and `results/scaling-pool-2w/timing.csv`.
-- **Conclusion:** Two workers improved performance, but the speedup was below the ideal 2x. These interactive measurements are exploratory, not official cluster batch benchmarks. More worker counts and repeated cluster runs are still needed.
+- **Conclusion:** **Conclusion:** Two workers improved performance, giving a preliminary speedup of 1.46x. However, the JupyterLab session had 2 logical CPUs sharing 1 physical core, so both workers competed for the same physical core. This helps explain why the speedup was below the ideal 2x. These interactive measurements are exploratory and should not be used as official cluster benchmarks.
 
 ### 2026-11-16: Task D - Correctness verification
 
