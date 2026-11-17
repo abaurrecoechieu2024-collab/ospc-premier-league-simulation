@@ -22,3 +22,10 @@ Record future AI assistance, verification, and corrections as the project develo
 - Verification: 18 pytest tests passed locally; real-data run of 10,000 seasons checked (probabilities sum to 1 per position).
 - To do by the team: review the modelling choices, run the tests and a job on the cluster.
 - Later the same day (Claude): pooled promotion factors, backtest script (simple/multi/full models, every matchweek), season-date check for input files, and the final defaults (multi, weight 0.5, Championship off) chosen by the team from the backtest results run locally.
+
+## 17 November 2026 - Task D (Armando Hernandez)
+- Tool: OpenAI ChatGPT.
+- Assistance: Helped write and debug Python code for performance analysis, calculate speedup, efficiency and Amdahl's serial fraction, create scaling graphs, and improve the written interpretation.
+- Prompts: Asked for step-by-step help analyzing Premier League simulation performance, comparing sequential and parallel execution, interpreting profiling results, and correcting the notebook.
+- Verification: Checked the results using Slurm job 30371 data, reviewed profiling from job 30261, and verified the notebook outputs.
+- Human review: Reviewed the analysis and corrected the explanations based on group feedback.
